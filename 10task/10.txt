@@ -1,0 +1,194 @@
+Task: Create a CI/CD pipeline to build a React application and deploy it to an Azure virtual machine.
+
+🔧 Prerequisites
+Azure DevOps project
+
+Azure Linux VM (with public IP)
+
+React app code (we’ll create a sample)
+
+VM configured with:
+
+Node.js & Nginx installed
+
+SSH enabled
+
+Port 80 open in NSG
+
+✅ Step 1: Sample React App in Azure Repos
+Go to Azure DevOps → Repos → Files → New Folder
+Create folder: react-app
+
+Inside it, add:
+📄 package.json
+{
+  "name": "react-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  }
+}
+
+📄 src/index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<h1>Hello from React on Azure VM!</h1>);
+
+📄 public/index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head><meta charset="UTF-8"><title>React App</title></head>
+  <body><div id="root"></div></body>
+</html>
+
+✅ Step 2: Configure Azure Linux VM
+Make sure your VM has the following:
+
+🔹 SSH Setup
+Port 22 open (in NSG)
+
+Public IP
+
+SSH key or password
+
+🔹 Node.js & Nginx Installed
+SSH into VM and run:
+sudo apt update && sudo apt install -y nginx nodejs npm
+sudo systemctl enable nginx
+sudo systemctl start nginx
+Verify:
+node -v
+npm -v
+nginx -v
+
+✅ Step 3: Create Secure File in Azure DevOps
+Go to:
+
+Pipelines → Library → Secure Files → Upload your private SSH key
+
+Name it vm-ssh-key.pem
+
+Then:
+
+Pipelines → Library → New Variable Group → vm-vars
+
+| Variable Name | Value (example)                   | Keep secret? |
+| ------------- | --------------------------------- | ------------ |
+| VM_HOST     | your.vm.ip.address              | No           |
+| VM_USER     | azureuser (or your VM username) | No           |
+| SSH_KEY     | vm-ssh-key.pem                  | No           |
+| APP_DIR     | /var/www/reactapp               | No           |
+
+✅ Step 4: Azure DevOps Pipeline (azure-pipelines.yml)
+Create in repo root:
+
+trigger:
+- main
+
+variables:
+  - group: vm-vars
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildReactApp
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+
+    - script: |
+        npm install
+        npm run build
+      workingDirectory: 'react-app'
+      displayName: 'Build React App'
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: 'react-app/build'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'react-dist'
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - job: DeployToVM
+    steps:
+    - download: current
+      artifact: react-dist
+
+    - task: InstallSSHKey@0
+      inputs:
+        knownHostsEntry: '$(VM_HOST)'
+        sshPublicKey: ''
+        sshKeySecureFile: '$(SSH_KEY)'
+
+    - task: CopyFilesOverSSH@0
+      inputs:
+        sshEndpoint: 'ssh-connection'
+        sshEndpointSecureFile: '$(SSH_KEY)'
+        contents: '**'
+        sourceFolder: '$(Pipeline.Workspace)/react-dist'
+        targetFolder: '$(APP_DIR)'
+        targetHost: '$(VM_HOST)'
+        targetUsername: '$(VM_USER)'
+        cleanTargetFolder: true
+        readyTimeout: '20000'
+
+    - task: SSH@0
+      inputs:
+        sshEndpoint: 'ssh-connection'
+        sshEndpointSecureFile: '$(SSH_KEY)'
+        host: '$(VM_HOST)'
+        username: '$(VM_USER)'
+        script: |
+          sudo rm -rf /var/www/html/*
+          sudo cp -r $(APP_DIR)/* /var/www/html/
+
+Create and Use an SSH Service Connection (sshEndpoint)
+Go to your Azure DevOps project
+
+Navigate to:
+Project Settings → Service Connections → New service connection
+
+Choose: SSH
+
+Fill the following:
+| Field                  | Value                                |
+| ---------------------- | ------------------------------------ |
+| Connection name        | vm-ssh-connection                  |
+| Host name or IP        | Your VM public IP (e.g. 13.x.x.x)  |
+| Port                   | 22                                 |
+| Username               | azureuser (or your VM user)        |
+| Password or SSH key    | Provide your private key or password |
+| Private key passphrase | (if applicable)                      |
+
+✅ Save the connection and give access to all pipelines
+
+
+
+✅ Step 5: Access React App
+Go to your VM public IP in the browser:http://<your-vm-ip>
+
+You should see:
+
+Hello from React on Azure VM!
+

@@ -1,0 +1,153 @@
+Task: Create a CI/CD pipeline to build a .NET application and deploy it to Azure App Service.
+
+🔧 Prerequisites
+Azure DevOps project created
+
+Azure App Service created (e.g. sampledotnetwebapp)
+
+Azure Resource Group (e.g. dotnet-demo-rg)
+
+App runtime: .NET 6 or .NET 8
+
+✅ Step 1: Create the .NET App Files in Azure Repos
+Go to Azure DevOps → Repos → Files
+
+➕ Create the following structure:
+Folder: MyApp
+
+Inside MyApp, create the following files:
+
+🔹 Program.cs
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapGet("/", () => "Hello from Azure App Service!");
+
+app.Run();
+
+🔹 MyApp.csproj
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>
+
+🔹 .gitignore (optional)
+bin/
+obj/
+*.user
+*.suo
+
+✅ Step 2: Create a Service Connection
+Go to Project Settings → Service Connections
+
+Click New service connection
+
+Choose Azure Resource Manager
+
+Use Automatic authorization
+
+Select:
+
+Your Subscription
+
+Resource Group: dotnet-demo-rg
+
+Name it: azure-rm-connection
+
+✅ Grant access to all pipelines
+
+✅ Step 3: Create the CI/CD YAML Pipeline
+Go to Pipelines → New Pipeline
+
+Choose YAML
+
+Choose the repo (where MyApp lives)
+
+Click "Continue", then paste this:
+
+📄 azure-pipelines.yml
+trigger:
+- main
+
+variables:
+  buildConfiguration: 'Release'
+  azureSubscription: 'azure-rm-connection'
+  appName: 'sampledotnetwebapp'        # Change to your App Service name
+  resourceGroup: 'dotnet-demo-rg'      # Change if needed
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '6.0.x'                   # or 8.0.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore'
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build'
+  inputs:
+    command: 'build'
+    arguments: '--configuration $(buildConfiguration)'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish'
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'drop'
+
+- task: AzureWebApp@1
+  displayName: 'Deploy to Azure App Service'
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    appType: 'webApp'
+    appName: '$(appName)'
+    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+📌 Make sure your App Service name and service connection match exactly.
+
+✅ Step 4: Run and Verify
+Click Run Pipeline
+
+The pipeline will:
+
+Restore
+
+Build
+
+Publish
+
+Deploy to Azure App Service
+
+🌐 Step 5: Access the Deployed App
+Go to [portal.azure.com → App Services → Your App]
+
+Copy the Default Domain, e.g.:https://sampledotnetwebapp.azurewebsites.net
+
+✅ Open in browser
+You should see:
+
+Hello from Azure App Service!
