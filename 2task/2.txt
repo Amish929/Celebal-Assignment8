@@ -1,0 +1,65 @@
+Task:Use pipeline variables while configuring pipelines.
+
+🔧 Step 1: Go to Pipelines
+Open https://dev.azure.com
+
+Select your organization and project
+
+On the left panel, go to Pipelines
+
+Select your existing pipeline or click "New Pipeline"
+
+💡 What Are Pipeline Variables?
+Pipeline variables store values that you want to reuse in your pipeline — like version numbers, branch names, or connection strings.
+
+They help make your pipelines dynamic, reusable, and secure.
+
+✍️ Step 2: Define Variables in YAML Pipeline
+
+🧪 Example: Using Variables in azure-pipelines.yml
+    trigger:
+- main
+
+variables:
+  buildConfiguration: 'Release'
+  platform: 'any cpu'
+  appVersion: '1.0.0'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: echo "Building version $(appVersion) in $(buildConfiguration) mode on $(platform)"
+  displayName: 'Print variables'
+
+🔍 Output:
+It will print:Building version 1.0.0 in Release mode on any cpu
+
+🔁 Step 3: Set Variables from UI (Classic Pipeline)
+Go to Pipelines → Edit your pipeline
+
+Click on Variables (top tab)
+
+Click + Add
+
+Name: environment
+
+Value: staging
+
+Optionally mark as Settable at queue time
+
+Use it in pipeline steps like:- script: echo "Deploying to $(environment)"
+
+🧪 Step 4: Override Variables at Runtime (Queue Time)
+When you click Run Pipeline, you’ll see input fields for variables
+
+Change environment from staging to production before running
+
+This allows dynamic behavior without editing the YAML file.
+
+🔒 Step 5: Use Secret Variables
+In Variables tab → Click + Add
+
+Set the name and mark it as "Keep this value secret"
+
+Reference it in scripts:- script: echo "My secret is $(mySecret)"  # Not visible in logs

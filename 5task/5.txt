@@ -1,0 +1,158 @@
+Task: Create a Linux/Windows self-hosted agent.
+
+A self-hosted agent is a machine (Linux or Windows) that you set up and register with Azure DevOps to run your pipelines. You manage it instead of using Microsoft-hosted agents.
+
+
+✅ Prerequisites
+A Windows machine or VM (physical machine, Azure VM, or local system)
+
+.NET Framework 4.6+ installed
+
+Access to https://dev.azure.com
+
+Project Administrator permissions
+
+A Personal Access Token (PAT) to authenticate the agent
+
+✅ Step 1: Go to Agent Pools
+Open your browser → Go to https://dev.azure.com
+
+Select your organization and project
+
+At the bottom-left, click ⚙️ Project Settings
+
+Under Pipelines, click Agent pools
+
+Click on the Default pool (or create a new one)
+
+Click New agent
+
+✅ Step 2: Download the Windows Agent
+In the pop-up, select:
+
+Windows (x64) platform
+
+Click Download
+
+It will download a .zip file (e.g., vsts-agent-win-x64-3.229.1.zip)
+
+✅ Step 3: Extract the Agent
+Create a folder like C:\azagent
+
+Move the ZIP file there
+
+Right-click the ZIP file → Click Extract All
+
+Extract contents into C:\azagent
+
+✅ Step 4: Generate a Personal Access Token (PAT)
+Click on your User icon (top-right) → Security
+
+Click New Token
+
+Set:
+
+Name: AgentToken
+
+Organization: Your org
+
+Expiration: 30 or 90 days
+
+Scopes: ✅ Check Agent Pools (Read & manage) and Read & execute build pipelines
+
+Click Create and copy the token (save it somewhere safe temporarily)
+
+✅ Step 5: Configure the Agent
+Open Command Prompt as Administrator
+
+Navigate to your agent folder:cd C:\azagent
+
+Run the configuration command:config.cmd
+
+You'll be prompted to enter:
+
+Server URL: https://dev.azure.com/your-org-name
+
+Authentication: Type PAT
+
+Personal Access Token: Paste the token you created
+
+Agent Pool: Choose Default or your custom one
+
+Agent Name: Any name like win-agent-01
+
+Accept defaults for work folder
+
+✅ Step 6: Start the Agent as a Windows Service
+   command: run.cmd
+
+🧪 Step 7: Verify It’s Connected
+Go to Azure DevOps → Project Settings → Agent Pools
+
+Click your pool (e.g., Default)
+
+✅ Your agent should show Online
+
+
+For Linux
+
+🧾 Prerequisites
+A Linux VM or physical machine (can be an Ubuntu EC2 instance or Azure VM)
+
+Internet access from that machine
+
+Azure DevOps project
+
+
+✅ Step 1: Go to Azure DevOps → Agent Pools
+Open your Azure DevOps Project:
+👉 https://dev.azure.com
+
+Click ⚙️ Project Settings (bottom-left)
+
+Under Pipelines, click Agent pools
+
+Click Default or create a new pool
+
+Click New agent
+
+✅ Step 2: Choose Your OS and Download Agent
+In the “Add a new agent” screen:
+
+Select Linux (x64) (or Windows if you're doing it on a Windows system)
+
+Copy the commands shown on the screen. For example:
+
+For Linux:
+mkdir myagent && cd myagent
+curl -O https://vstsagentpackage.azureedge.net/agent/3.229.1/vsts-agent-linux-x64-3.229.1.tar.gz
+tar zxvf vsts-agent-linux-x64-3.229.1.tar.gz
+./config.sh
+
+During ./config.sh, you will be asked:
+
+Azure DevOps URL: https://dev.azure.com/YOUR_ORG_NAME
+
+PAT (Personal Access Token): Generate it from Azure DevOps → top-right → User Icon → Security → New Token
+
+✅ Step 3: Configure the Agent
+./config.sh
+
+You’ll be prompted for:
+
+Server URL: https://dev.azure.com/your-org
+
+Authentication: Choose PAT
+
+PAT: Paste it
+
+Agent pool: Use Default or your custom pool
+
+Agent name: Give it any name (e.g., linux-agent)
+
+Accept defaults for work folder and run options
+
+✅ Step 4: Start the Agent: ./run.sh
+
+✅ Now your agent will start automatically with the system.
+

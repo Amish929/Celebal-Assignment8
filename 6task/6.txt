@@ -1,0 +1,56 @@
+Task: Apply pre and post-deployment approvers in the release pipeline.
+
+✅ Step 1: Create an Environment with Approvers
+Go to Pipelines → Environments
+
+Click “New environment”
+
+Give it a name like dev or prod
+
+After creating, click the environment
+
+Click “…” (More options) → Approvals and checks
+
+Click + Add check → Choose Approvals
+
+Add your Azure DevOps user (or mentor) as an approver
+
+Save it ✅
+
+✅ Step 2: Update Your YAML Pipeline to Use the Environment
+Here’s an example YAML file that uses that environment:
+
+ trigger:
+- main
+
+stages:
+- stage: Deploy
+  displayName: "Deploy to Environment"
+  jobs:
+  - deployment: DeployJob
+    displayName: "Deployment Job"
+    environment: dev  # 🔴 This is where approvals are triggered
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - script: echo "Deploying application..."
+
+
+The environment: dev part triggers the approval before running the job — only after approval, the DeployJob will run.
+
+✅ How It Works
+| Step                                | What Happens                  |
+| ----------------------------------- | ----------------------------- |
+| Pipeline reaches `environment: dev` | Pauses and waits for approval |
+| Approver clicks Approve in UI   | Pipeline continues            |
+| Approver clicks Reject          | Pipeline fails the stage      |
+
+🧪 Test It
+Commit and push this YAML file
+
+Go to Pipelines → Run pipeline
+
+Wait → You’ll see “Waiting for approval” in the Environments tab
+
+Click Approve to continue

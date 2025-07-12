@@ -1,0 +1,60 @@
+Task: Create a service connection.
+
+A Service Connection (also called a service endpoint) allows your Azure DevOps pipelines to connect to external services like Azure, GitHub, Docker Hub, AWS, etc.
+
+In this task, we’ll create an Azure Resource Manager (ARM) service connection.
+
+
+✅ Prerequisites
+You’ll need:
+
+Azure DevOps Project Admin permissions
+
+An Azure subscription
+
+Azure DevOps organization set up at https://dev.azure.com
+
+
+🔧 Step 1: Go to Project Settings
+Open your project at:
+👉 https://dev.azure.com/{your_organization}/{your_project}
+
+At the bottom-left corner, click ⚙️ Project Settings
+
+Under Pipelines, click Service connections
+
+
+➕ Step 2: Add New Service Connection
+Click + New service connection
+
+You’ll see a list of service types. Choose:
+
+✅ Azure Resource Manager
+
+Click Next
+
+🔑 Step 3: Choose Authentication Method
+
+🔹1: Service principal (automatic)
+Recommended and easiest.
+
+Click "Next"
+
+Sign in to your Azure account
+
+Select:
+
+Subscription
+
+Resource Group (or leave as All)
+
+Name your connection (e.g., Azure-ARM-Connection)
+
+✅ Check "Grant access permission to all pipelines"
+
+Click Save
+
+📦 Step 4: Verify the Connection
+After saving, you’ll see your new connection listed under Service connections
+
+Status should show Verified ✅

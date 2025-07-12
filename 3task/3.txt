@@ -1,0 +1,138 @@
+Task:Use variable and task groups in pipelines and set scopes for different stages.
+
+🔧 Step 1: Go to Your Project
+Visit https://dev.azure.com
+
+Choose your organization and project
+
+Go to Pipelines → Library
+
+
+📦 Step 2: Create a Variable Group
+Click on + Variable group
+
+Enter a name (e.g., AppSettingsGroup)
+
+Add variables:
+
+Example:
+
+env: dev
+
+appName: MyApp
+
+region: East US
+
+Optionally enable “Allow access to all pipelines”
+
+Save
+
+🔐 You can also mark variables as secret
+
+🧪 Step 3: Link Variable Group in YAML Pipeline
+  variables:
+- group: AppSettingsGroup
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    steps:
+    - script: echo "Building $(appName) for $(env) in $(region)"
+
+
+
+✅ STEP 4: Prepare Your Repo to Hold YAML Files
+Go to Repos → Files in Azure DevOps
+
+Create a new folder called templates (right-click → New Folder)
+
+Inside this folder, click New File
+
+Name the file: task-template.yml
+
+✍️ STEP 5: Add the Reusable Task Template
+Paste this into your task-template.yml file:
+# templates/task-template.yml
+
+parameters:
+  - name: appName
+    type: string
+
+steps:
+  - script: echo "Deploying ${{ parameters.appName }}"
+  - script: echo "Running in environment: $(env)"
+  - script: echo "Variable from group (example): $(region)"
+✅ This is your Task Group alternative.
+
+✅ STEP 6: Create Your Main Pipeline YAML
+Go back to Repos → Files
+
+At the root (not in templates), click New File
+
+Name it: azure-pipelines.yml
+
+Paste the following:
+# azure-pipelines.yml
+
+trigger:
+- main
+
+variables:
+- group: MyVarGroup   # Replace with the name of your real variable group
+
+stages:
+- stage: Dev
+  variables:
+    env: 'dev'
+  jobs:
+  - job: DevJob
+    steps:
+    - template: templates/task-template.yml
+      parameters:
+        appName: 'MyApp-Dev'
+
+- stage: Prod
+  variables:
+    env: 'production'
+  jobs:
+  - job: ProdJob
+    steps:
+    - template: templates/task-template.yml
+      parameters:
+        appName: 'MyApp-Prod'
+
+✅ This links:
+
+The variable group
+
+The task template
+
+Stage-specific variable env
+
+✅ STEP 7: Run Your Pipeline
+Go to Pipelines → Pipelines
+
+Click “New Pipeline”
+
+Select Azure Repos Git
+
+Choose your repo
+
+Select “YAML”
+
+It will auto-detect azure-pipelines.yml → click Continue
+
+Click Run to start the pipeline
+
+✅ STEP 8: Verify the Output
+In Stage: Dev, you should see output like:
+Deploying MyApp-Dev
+Running in environment: dev
+Variable from group (example): East US
+
+In Stage: Prod, it will be:
+Deploying MyApp-Prod
+Running in environment: production
+Variable from group (example): East US
+

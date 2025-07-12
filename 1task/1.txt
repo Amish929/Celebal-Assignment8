@@ -1,0 +1,84 @@
+Task:Configure dashboard and queries for work items.
+
+✅ Prerequisites
+Make sure:
+
+You have access to your Azure DevOps Project
+
+You are assigned a role with permission (Project Admin / Contributor)
+
+Some work items (e.g., tasks, bugs, user stories) already exist in the project.
+
+🧭 Step 1: Sign in to Azure DevOps
+Go to: https://dev.azure.com
+
+Select your organization and project where you want to configure the dashboard and queries.
+
+🔍 Step 2: Create a Query for Work Items
+🔹 Option A: Use Basic Queries
+On the left menu, go to Boards → Queries
+
+Click New Query
+
+In the query builder:
+
+Field: Work Item Type → Operator: =, Value: Task
+
+(Add more filters if needed like Assigned To, State, Area Path, etc.)
+
+Click Run Query (top-right)
+
+🔹 Example: To get all active tasks assigned to you:
+
+Field: Assigned To = @Me
+
+Field: State = Active
+
+Click Save Query
+
+Name: My Active Tasks
+
+Save under: My Queries or a Shared folder for team use
+
+
+📊 Step 3: Create or Edit a Dashboard
+In left pane, go to Dashboards
+
+Select your dashboard or click New Dashboard
+
+Name: Project Overview
+
+Visibility: Team / Project
+
+Click Create
+
+➕ Step 4: Add a Query Tile to Dashboard
+In your dashboard, click Edit (top-right)
+
+Click Add a Widget
+
+Search for Query Tile or Query Results
+
+Click Add for Query Tile or Query Results
+
+Configure the widget:
+
+Select your saved query (My Active Tasks)
+
+Set title, chart type (if available)
+
+Click Save & Close
+
+🔁 Step 5: Save and View Your Dashboard
+After adding widgets, click Done Editing
+
+Your dashboard is now live and viewable by your team
+
+You can update queries, widgets anytime.
+
+🧪 Final Check
+✅ Query is created and returns correct results
+
+✅ Dashboard shows the work item query results
+
+✅ Widgets are readable and helpful for team status
